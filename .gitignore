@@ -1,0 +1,24 @@
+# Python cache ve derleme dosyaları
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Qt Designer geçici dosyaları
+*.ui
+
+# Veritabanı dosyaları
+*.db
+
+# Log dosyaları
+*.log
+
+# Ortam dosyaları
+.env
+
+# VSCode ayarları
+.vscode/
+
+# Sistem dosyaları
+.DS_Store
+Thumbs.db
