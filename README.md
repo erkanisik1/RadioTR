@@ -62,7 +62,7 @@ Veritabanı otomatik olarak oluşturulur.
 
 ## Katkı ve Lisans
 
-Bu proje MIT lisansı ile yayınlanmıştır.  
+Bu proje GNU General Public License v3.0 lisansı ile yayınlanmıştır.  
 Katkıda bulunmak için pull request gönderebilirsiniz.
 
 ---
