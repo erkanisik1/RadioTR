@@ -1,20 +1,39 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import os
 import sqlite3
 
-def veritabani_olustur():
-    conn = sqlite3.connect('playlist.db')
+def veritabani_sifirla():
+    """Veritabanını sıfırlar ve varsayılan istasyonlarla yeniden oluşturur"""
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'playlist.db')
+    
+    # Eğer veritabanı dosyası varsa sil
+    if os.path.exists(db_path):
+        os.remove(db_path)
+        print("Eski veritabanı silindi.")
+    
+    # Yeni bağlantı oluştur
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
     # İstasyonlar tablosu
-    cursor.execute('''CREATE TABLE IF NOT EXISTS istasyonlar
-                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                      isim TEXT NOT NULL,
-                      url TEXT UNIQUE NOT NULL,
-                      tur TEXT DEFAULT 'Müzik')''')
+    cursor.execute('''
+    CREATE TABLE istasyonlar (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        isim TEXT NOT NULL,
+        url TEXT NOT NULL UNIQUE,
+        tur TEXT NOT NULL
+    )
+    ''')
     
     # Ayarlar tablosu
-    cursor.execute('''CREATE TABLE IF NOT EXISTS ayarlar
-                     (ayar_adi TEXT PRIMARY KEY,
-                      deger TEXT)''')
+    cursor.execute('''
+    CREATE TABLE ayarlar (
+        anahtar TEXT PRIMARY KEY,
+        deger TEXT
+    )
+    ''')
     
     # Varsayılan istasyonlar
     varsayilan_istasyonlar = [
@@ -31,16 +50,17 @@ def veritabani_olustur():
         ('Kafa Radyo', 'https://moondigitaledge2.radyotvonline.net/kafaradyo/playlist.m3u8', 'Türkçe Pop')
     ]
     
-    # Eğer tablo boşsa varsayılan istasyonları ekle
-    cursor.execute("SELECT COUNT(*) FROM istasyonlar")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO istasyonlar (isim, url, tur) VALUES (?, ?, ?)", varsayilan_istasyonlar)
+    # İstasyonları ekle
+    cursor.executemany("INSERT INTO istasyonlar (isim, url, tur) VALUES (?, ?, ?)", varsayilan_istasyonlar)
     
-    # Varsayılan ses seviyesi ayarını ekle (eğer yoksa)
-    cursor.execute("INSERT OR IGNORE INTO ayarlar (ayar_adi, deger) VALUES (?, ?)", ("ses_seviyesi", "50"))
+    # Varsayılan ayarları ekle
+    cursor.execute("INSERT INTO ayarlar (anahtar, deger) VALUES (?, ?)", ('output_device', '0'))
     
     conn.commit()
     conn.close()
+    
+    print("Veritabanı başarıyla oluşturuldu ve varsayılan istasyonlar eklendi.")
+    print(f"Veritabanı konumu: {db_path}")
 
 if __name__ == "__main__":
-    veritabani_olustur()
+    veritabani_sifirla()

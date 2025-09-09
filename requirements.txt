@@ -1,4 +1,4 @@
-PyQt6>=6.0
-python-vlc>=3.0
-pyaudio>=0.2
+PyQt6>=6.0.0
+python-vlc>=3.0.0
+PyAudio>=0.2.11
 numpy>=1.20

@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QListWidget, QLabel, QListWidgetItem,
     QDialog, QLineEdit, QMessageBox, QDialogButtonBox, QComboBox, QMenu,
-    QToolButton
+    QToolButton, QSystemTrayIcon
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
 from PyQt6.QtGui import QIcon, QAction
@@ -99,6 +99,57 @@ class RadyoPlayer(QMainWindow):
         self.vu_timer = QTimer(self)
         self.vu_timer.timeout.connect(self.update_visualizer)
         self.vu_timer.start(75) # 75 milisaniyede bir, daha yumuşak bir ritim için
+
+         # --- TRAY İKONU EKLE ---
+        self.tray_icon = QSystemTrayIcon(QIcon("icons/radio-icon.png"), self)
+        tray_menu = QMenu()
+        show_action = QAction("Göster", self)
+        quit_action = QAction("Çıkış", self)
+        tray_menu.addAction(show_action)
+        tray_menu.addAction(quit_action)
+        self.tray_icon.setContextMenu(tray_menu)
+
+        show_action.triggered.connect(self.showNormal)
+        quit_action.triggered.connect(QApplication.quit)
+
+        self.tray_icon.setToolTip("RadioTR - İnternet Radyo Oynatıcısı")
+        self.tray_icon.show()
+
+        # Çift tık ile pencereyi geri getirme
+        self.tray_icon.activated.connect(self.on_tray_activated)
+
+    def on_tray_activated(self, reason):
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+            if self.isHidden():
+                self.showNormal()
+                self.activateWindow()
+            else:
+                self.hide()
+    
+    def hideEvent(self, event):
+        # Pencere gizlendiğinde çalma durumunu koru
+        if hasattr(self, 'player') and self.player.is_playing():
+            self.was_playing = True
+        super().hideEvent(event)
+
+    def showEvent(self, event):
+        # Pencere tekrar gösterildiğinde çalma durumunu güncelle
+        if hasattr(self, 'was_playing') and self.was_playing:
+            self.was_playing = False
+            if not self.player.is_playing():
+                self.player.play()
+        super().showEvent(event)
+
+    def closeEvent(self, event):
+        if self.tray_icon.isVisible():
+            self.hide()
+            event.ignore()   # uygulamayı kapatma
+        else:
+            # Uygulama kapatılırken VLC player'ı temizle
+            if hasattr(self, 'player'):
+                self.player.stop()
+                self.player.release()
+            super().closeEvent(event)
 
     def update_visualizer(self):
         """Müzik çalarken VU metreye ritmik bir hareket verir."""
@@ -308,12 +359,6 @@ class RadyoPlayer(QMainWindow):
     def show_error_message(self):
         self.su_an_calan_label.setText("Hata: Yayın açılamadı. Başka bir istasyon seçin.")
 
-    def closeEvent(self, event):
-        self.stop_station()
-        event.accept()
-
-   
-
     def select_audio_device(self):
         dialog = QDialog(self)
         dialog.setWindowTitle("Ses Çıkış Cihazı Seçin")
@@ -363,7 +408,8 @@ class RadyoPlayer(QMainWindow):
 
         dialog.exec()
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    app = QApplication(sys.argv)    
+    QApplication.setQuitOnLastWindowClosed(False)  # önemli
     try:
         with open('style.qss', 'r') as f:
             app.setStyleSheet(f.read())
