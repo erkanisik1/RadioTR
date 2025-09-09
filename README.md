@@ -1,3 +1,8 @@
+<p dir="auto" align="center">
+  <img src="radio.jpg" alt="RadioTR Logo" style="max-width: 100%;margin: 0 auto">
+</p>
+
+
 # RadioTR Player
 
 RadioTR Player, internet radyolarını dinleyebileceğiniz, istasyon ekleyip düzenleyebileceğiniz ve ses seviyesini görsel olarak takip edebileceğiniz modern bir masaüstü uygulamasıdır.
