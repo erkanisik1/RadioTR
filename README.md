@@ -68,4 +68,4 @@ Katkıda bulunmak için pull request gönderebilirsiniz.
 ---
 
 **Geliştirici:** Erkan Işık  
-GitHub: [github.com/erkanisik](https://github.com/erkanisik1)
+GitHub: [github.com/erkanisik1](https://github.com/erkanisik1)
