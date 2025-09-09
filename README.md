@@ -1,13 +1,13 @@
-# PyRadio Player
+# RadioTR Player
 
-PyRadio Player, internet radyolarını dinleyebileceğiniz, istasyon ekleyip düzenleyebileceğiniz ve ses seviyesini görsel olarak takip edebileceğiniz modern bir masaüstü uygulamasıdır.
+RadioTR Player, internet radyolarını dinleyebileceğiniz, istasyon ekleyip düzenleyebileceğiniz ve ses seviyesini görsel olarak takip edebileceğiniz modern bir masaüstü uygulamasıdır.
 
 ## Özellikler
 
 - Radyo istasyonu ekleme, düzenleme ve silme
 - SQLite veritabanında istasyon saklama
 - VLC tabanlı radyo yayını oynatma
-- Gerçek zamanlı VU metre (ses seviyesi göstergesi)
+- VU metre (ses seviyesi göstergesi)
 - Modern ve sade PyQt6 arayüzü
 - Favori istasyonlarınızı hızlıca seçme ve oynatma
 - Oynat/Durdur için tek buton ve ikon desteği
