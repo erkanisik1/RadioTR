@@ -47,7 +47,7 @@ Kendi ikonlarınızı kullanabilirsiniz.
 ## Kullanım
 
 ```bash
-python3 player-v3.py
+./player-v3.py
 ```
 
 - Yeni istasyon eklemek için "Yeni İstasyon Ekle" butonunu kullanın.
@@ -57,7 +57,7 @@ python3 player-v3.py
 
 ## Veritabanı
 
-İstasyonlar `playlist.db` ve/veya `channel.db` dosyalarında saklanır.  
+İstasyonlar `playlist.db` dosyasında saklanır.  
 Veritabanı otomatik olarak oluşturulur.
 
 ## Katkı ve Lisans
@@ -68,4 +68,4 @@ Katkıda bulunmak için pull request gönderebilirsiniz.
 ---
 
 **Geliştirici:** Erkan Işık  
-GitHub: [github.com/erkanisik](https://github.com/erkanisik)
+GitHub: [github.com/erkanisik](https://github.com/erkanisik1)
