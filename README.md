@@ -68,7 +68,8 @@ Veritabanı otomatik olarak oluşturulur.
 ## Katkı ve Lisans
 
 Bu proje GNU General Public License v3.0 lisansı ile yayınlanmıştır.  
-Katkıda bulunmak için pull request gönderebilirsiniz.
+Katkıda bulunmak için pull request gönderebilirsiniz.    
+Görüş ve önerilerinizi <a href='https://github.com/erkanisik1/RadioTR/issues' target='_blank'><b>issues</b></a> açarak iletebilirsiniz.
 
 ---
 
