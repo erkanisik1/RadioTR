@@ -4,6 +4,29 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir. Format
 [Keep a Changelog](https://keepachangelog.com/tr/1.1.0/) ve
 [Semantic Versioning](https://semver.org/lang/tr/) temel alınır.
 
+## [0.3.0] - 2026-08-05
+
+### Eklendi
+- **Çok dilli arayüz (Türkçe / İngilizce):** Ayarlar → Dil menüsünden dil
+  seçilebilir (Otomatik / Türkçe / İngilizce). "Otomatik" sistem dilini kullanır;
+  desteklenmeyen dilde İngilizce'ye düşülür. Seçim `ayarlar.dil` alanına
+  kaydedilir ve açılışta geri yüklenir.
+- **`lang/` çeviri dosyaları:** Tüm çeviriler `lang/tr.json` ve `lang/en.json`
+  dosyalarında JSON olarak tutulur; `dil.py` bu dosyaları okur, eksik anahtar
+  için İngilizce fallback kullanır. Tür adları veritabanında Türkçe kalır,
+  arayüzde `genre.*` anahtarıyla görüntülenir.
+
+### Değişti
+- **Tüm arayüz metinleri çevrilebilir:** Pencere başlığı, menüler, butonlar,
+  mesaj kutuları, tepsi menüsü/tooltip'i ve VU metre hata yazıları dinamik çeviri
+  kullanır; dil değişince anında güncellenir.
+- **VU metre çeviri desteği:** Hata yazıları (`vu.*` anahtarları) dile göre
+  gösterilir; `set_language()` ile dil değişimi anında yansır.
+
+### Teknik / Altyapı
+- Yeni modül `dil.py`: `I18n(db_path)`, `t()` (değer/çeviri), `g()` (tür çevirisi),
+  `system_language()` sistem dili algılama.
+
 ## [0.2.0] - 2026-08-05
 
 ### Eklendi

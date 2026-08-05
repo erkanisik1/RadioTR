@@ -1,0 +1,80 @@
+{
+  "app.title": "RadioTR - Internet Radio Player",
+  "tray.tooltip.playing": "RadioTR - {isim}",
+  "tray.stations": "Stations",
+  "tray.show": "Show",
+  "tray.quit": "Quit",
+  "tray.no_stations": "(No stations)",
+
+  "now.none": "Select a station...",
+  "now.connecting": "Connecting: {isim}...",
+  "now.playing": "Now Playing: {isim}",
+  "now.stopped": "Stopped",
+  "now.deleted": "Station deleted.",
+  "now.error": "Error: Could not open stream. Choose another station.",
+
+  "btn.play": "Play",
+  "btn.stop": "Stop",
+  "volume.label": "Volume:",
+
+  "settings.tooltip": "Settings",
+  "settings.add_station": "Add New Station",
+  "settings.capture_source": "VU Meter Capture Source",
+  "settings.language": "Language",
+  "lang.auto": "System language (auto)",
+
+  "dialog.info": "Station Information",
+  "dialog.add": "Add New Station",
+  "dialog.edit": "Edit Station",
+  "dialog.name": "Station Name:",
+  "dialog.url": "Stream URL:",
+  "dialog.genre": "Genre:",
+  "dialog.name_placeholder": "e.g. Power FM",
+  "dialog.url_placeholder": "http://...",
+
+  "warn.title": "Warning",
+  "warn.no_selection": "Please select a station from the list!",
+  "warn.missing": "Missing Info",
+  "warn.missing_text": "Station name and URL cannot be empty.",
+  "warn.dup_url": "This URL already exists in the database.",
+
+  "menu.edit": "Edit",
+  "menu.delete": "Delete",
+  "confirm.delete_title": "Delete Confirmation",
+  "confirm.delete_text": "Are you sure you want to delete '{isim}'?",
+
+  "error.db": "Database Error",
+  "error.db_prepare": "Could not prepare database: {e}",
+  "error.load_stations": "Could not load stations: {e}",
+  "error.add_failed": "Could not add station: {e}",
+  "error.update_failed": "Could not update station: {e}",
+  "error.delete_failed": "Could not delete station: {e}",
+
+  "capture.title": "VU Meter Capture Source",
+  "capture.label": "Monitor sources (listen to the default speaker):",
+  "capture.auto": "Automatic (default speaker)",
+  "capture.pactl_err": "pactl Error",
+  "capture.pactl_err_text": "Could not get monitor sources: {e}",
+
+  "vu.no_device": "No audio capture device found",
+  "vu.pyaudio_fail": "Could not start PyAudio: {e}",
+  "vu.open_fail": "Could not open capture device",
+
+  "list.tooltip": "Double-click to listen.\nRight-click to edit or delete.",
+
+  "common.yes": "Yes",
+  "common.no": "No",
+  "common.save": "Save",
+  "common.cancel": "Cancel",
+  "common.ok": "OK",
+
+  "genre.Müzik": "Music",
+  "genre.Haber": "News",
+  "genre.Spor": "Sports",
+  "genre.Türkçe Pop": "Turkish Pop",
+  "genre.Yabancı Müzik": "Foreign Music",
+  "genre.Slow": "Slow",
+  "genre.Türk Sanat Müziği": "Turkish Classical Music",
+  "genre.Türk Halk Müziği": "Turkish Folk Music",
+  "genre.Diğer": "Other"
+}

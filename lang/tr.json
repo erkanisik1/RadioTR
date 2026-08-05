@@ -1,0 +1,80 @@
+{
+  "app.title": "RadioTR - İnternet Radyo Oynatıcısı",
+  "tray.tooltip.playing": "RadioTR - {isim}",
+  "tray.stations": "İstasyonlar",
+  "tray.show": "Göster",
+  "tray.quit": "Çıkış",
+  "tray.no_stations": "(İstasyon yok)",
+
+  "now.none": "Bir istasyon seçin...",
+  "now.connecting": "Bağlanılıyor: {isim}...",
+  "now.playing": "Şu An Çalıyor: {isim}",
+  "now.stopped": "Durduruldu",
+  "now.deleted": "İstasyon silindi.",
+  "now.error": "Hata: Yayın açılamadı. Başka bir istasyon seçin.",
+
+  "btn.play": "Oynat",
+  "btn.stop": "Durdur",
+  "volume.label": "Ses:",
+
+  "settings.tooltip": "Ayarlar",
+  "settings.add_station": "Yeni İstasyon Ekle",
+  "settings.capture_source": "VU Metre Yakalama Kaynağı",
+  "settings.language": "Dil",
+  "lang.auto": "Sistem dili (otomatik)",
+
+  "dialog.info": "İstasyon Bilgileri",
+  "dialog.add": "Yeni İstasyon Ekle",
+  "dialog.edit": "İstasyonu Düzenle",
+  "dialog.name": "İstasyon Adı:",
+  "dialog.url": "Yayın URL'si:",
+  "dialog.genre": "Tür:",
+  "dialog.name_placeholder": "Örn: Power FM",
+  "dialog.url_placeholder": "http://...",
+
+  "warn.title": "Uyarı",
+  "warn.no_selection": "Lütfen listeden bir istasyon seçin!",
+  "warn.missing": "Eksik Bilgi",
+  "warn.missing_text": "İstasyon adı ve URL'si boş bırakılamaz.",
+  "warn.dup_url": "Bu URL zaten veritabanında mevcut.",
+
+  "menu.edit": "Düzenle",
+  "menu.delete": "Sil",
+  "confirm.delete_title": "Silme Onayı",
+  "confirm.delete_text": "'{isim}' istasyonunu silmek istediğinizden emin misiniz?",
+
+  "error.db": "Veritabanı Hatası",
+  "error.db_prepare": "Veritabanı hazırlanamadı: {e}",
+  "error.load_stations": "İstasyonlar yüklenemedi: {e}",
+  "error.add_failed": "İstasyon eklenemedi: {e}",
+  "error.update_failed": "İstasyon güncellenemedi: {e}",
+  "error.delete_failed": "İstasyon silinemedi: {e}",
+
+  "capture.title": "VU Metre Yakalama Kaynağı",
+  "capture.label": "Monitor kaynakları (varsayılan hoparlörün sesini dinler):",
+  "capture.auto": "Otomatik (varsayılan hoparlör)",
+  "capture.pactl_err": "pactl Hatası",
+  "capture.pactl_err_text": "Monitor kaynakları alınamadı: {e}",
+
+  "vu.no_device": "Ses yakalama cihazı bulunamadı",
+  "vu.pyaudio_fail": "PyAudio başlatılamadı: {e}",
+  "vu.open_fail": "Yakalama cihazı açılamadı",
+
+  "list.tooltip": "Dinlemek için çift tıklayın.\nDüzenlemek veya silmek için sağ tıklayın.",
+
+  "common.yes": "Evet",
+  "common.no": "Hayır",
+  "common.save": "Kaydet",
+  "common.cancel": "İptal",
+  "common.ok": "Tamam",
+
+  "genre.Müzik": "Müzik",
+  "genre.Haber": "Haber",
+  "genre.Spor": "Spor",
+  "genre.Türkçe Pop": "Türkçe Pop",
+  "genre.Yabancı Müzik": "Yabancı Müzik",
+  "genre.Slow": "Slow",
+  "genre.Türk Sanat Müziği": "Türk Sanat Müziği",
+  "genre.Türk Halk Müziği": "Türk Halk Müziği",
+  "genre.Diğer": "Diğer"
+}

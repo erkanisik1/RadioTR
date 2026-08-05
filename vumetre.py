@@ -39,11 +39,15 @@ class VUMeterWidget(QWidget):
     SMOOTHING = 0.7
     DB_FLOOR = -60.0  # bu dB'in altı seviye sıfıra düşer
 
-    def __init__(self, capture_source=None, parent=None):
+    def __init__(self, capture_source=None, translator=None, parent=None):
         super().__init__(parent)
         self.level_l = 0.0
         self.level_r = 0.0
         self.setMinimumHeight(56)
+
+        self._i18n = translator
+        self._disabled_key = None
+        self._disabled_args = {}
 
         self._backend = None          # "parecord" | "pyaudio" | None
         self._proc = None             # parecord process
@@ -102,7 +106,7 @@ class VUMeterWidget(QWidget):
             return
         if pyaudio is not None and self._start_pyaudio():
             return
-        self._set_disabled("Ses yakalama cihazı bulunamadı")
+        self._set_disabled("vu.no_device")
 
     def _auto_recheck(self):
         """Varsayılan hoparlör değiştiyse yakalamayı yeni monitor'e geçir."""
@@ -114,7 +118,7 @@ class VUMeterWidget(QWidget):
         if self._backend == "parecord":
             self._close_capture()
         if not self._start_parecord(new_source):
-            self._set_disabled("Ses yakalama cihazı bulunamadı")
+            self._set_disabled("vu.no_device")
 
     @staticmethod
     def _monitor_source():
@@ -208,11 +212,11 @@ class VUMeterWidget(QWidget):
         try:
             self._pa = pyaudio.PyAudio()
         except Exception as exc:
-            self._set_disabled(f"PyAudio başlatılamadı: {exc}")
+            self._set_disabled("vu.pyaudio_fail", e=exc)
             return False
         index = self._find_pyaudio_input(self._pa)
         if index is None:
-            self._set_disabled("Ses yakalama cihazı bulunamadı")
+            self._set_disabled("vu.no_device")
             return False
         try:
             info = self._pa.get_device_info_by_index(index)
@@ -226,7 +230,7 @@ class VUMeterWidget(QWidget):
             return True
         except Exception as exc:
             print("PyAudio yakalama açılamadı:", exc)
-            self._set_disabled("Yakalama cihazı açılamadı")
+            self._set_disabled("vu.open_fail")
             return False
 
     @staticmethod
@@ -242,15 +246,43 @@ class VUMeterWidget(QWidget):
         self._close_capture()
         if source:
             if not self._start_parecord(source):
-                self._set_disabled("Yakalama cihazı açılamadı")
+                self._set_disabled("vu.open_fail")
         else:
             self._auto_capture()
 
-    def _set_disabled(self, message):
+    def _set_disabled(self, key, **kwargs):
+        self._disabled_key = key
+        self._disabled_args = kwargs
         self._close_capture()
-        self._label.setText(message)
-        self._label.show()
+        self._render_disabled()
         self.update()
+
+    def _render_disabled(self):
+        if not self._disabled_key:
+            return
+        msg = self._disabled_key
+        if self._i18n is not None:
+            msg = self._i18n.t(self._disabled_key, **self._disabled_args)
+        else:
+            fallback = {
+                'vu.no_device': 'Ses yakalama cihazı bulunamadı',
+                'vu.pyaudio_fail': 'PyAudio başlatılamadı',
+                'vu.open_fail': 'Yakalama cihazı açılamadı',
+            }
+            msg = fallback.get(self._disabled_key, self._disabled_key)
+            if self._disabled_args:
+                try:
+                    msg = msg.format(**self._disabled_args)
+                except (KeyError, IndexError):
+                    pass
+        self._label.setText(msg)
+        self._label.show()
+
+    def set_language(self, translator):
+        """Dil değişince pasif durum yazısını yeniden çevir."""
+        self._i18n = translator
+        if self._disabled_key:
+            self._render_disabled()
 
     def _close_capture(self):
         self._stop = True
