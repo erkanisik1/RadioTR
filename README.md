@@ -16,6 +16,7 @@ RadioTR Player, internet radyolarını dinleyebileceğiniz, istasyon ekleyip dü
 - VU metre için **otomatik cihaz seçimi** (varsayılan hoparlörü dinler; bluetooth bağlanınca/kopunca kendiliğinden geçer)
 - **Ses seviyesi kaydırıcısı** (değer hatırlanır)
 - **Sistem tepsisi desteği** — tepsi menüsünden istasyon seçme/değiştirme, pencereyi gizleme
+- **Çok dilli arayüz** (Türkçe / İngilizce) — Ayarlar → Dil; otomatik sistem dili algılama, seçim hatırlanır
 - Oynat/Durdur için tek buton ve ikon desteği
 - Modern ve sade koyu tema (PyQt6 + QSS)
 - Kanal listesinde fareyle üzerine gelince bilgi gösteren tooltip
@@ -71,6 +72,8 @@ Kendi ikonlarınızı da kullanabilirsiniz.
 - Pencereyi kapatmak yerine simge durumuna küçültmek için tepsi ikonuna tıklayın.
 - Tepsi ikonuna **sağ tıklayarak** "İstasyonlar" menüsünden radyo değiştirebilirsiniz.
   Çalan istasyon menüde işaretlenir.
+- Arayüz dilini **Ayarlar → Dil** menüsünden değiştirin (Otomatik / Türkçe / İngilizce).
+  "Otomatik" sistem dilini kullanır; seçim hatırlanır ve açılışta geri yüklenir.
 
 ## Veritabanı
 
