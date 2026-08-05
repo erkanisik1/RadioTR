@@ -105,7 +105,7 @@ ayarlar tablosu da otomatik olarak yeni şemaya taşınır.
 
 ## Değişiklik Günlüğü
 
-Sürüm notları için [CHANGELOG.md](CHANGELOG.md) dosyasına bakın.
+Sürüm notları için [CHANGELOG.tr.md](CHANGELOG.tr.md) dosyasına bakın.
 
 ## Katkı ve Lisans
 
