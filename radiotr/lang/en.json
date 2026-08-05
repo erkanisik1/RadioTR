@@ -22,6 +22,11 @@
   "settings.capture_source": "VU Meter Capture Source",
   "settings.language": "Language",
   "lang.auto": "System language (auto)",
+  "settings.export_stations": "Export Stations (RadioAndroid)",
+
+  "export.title": "Export Stations",
+  "export.error": "Export failed: {e}",
+  "export.done": "{count} stations exported to:\n{path}\n\nImport this JSON file in RadioAndroid to load them on Android.",
 
   "dialog.info": "Station Information",
   "dialog.add": "Add New Station",

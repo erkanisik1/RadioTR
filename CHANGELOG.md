@@ -13,6 +13,9 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir. Format
 - **Masaüstü entegrasyonu (.desktop):** İlk açılışta
   `~/.local/share/applications/radiotr.desktop` ve hicolor uygulama ikonu
   otomatik oluşturulur; radyo menüsünde görünür.
+- **İstasyon export (RadioAndroid):** Ayarlar menüsünden istasyonlar
+  RadioAndroid'in JSON biçimiyle (`[{"Nazwa","Sciezka"}]`) dışa aktarılır;
+  telefonunda içe aktarıp dinleyebilirsin.
 - **Kullanıcı verisi XDG'ye taşındı:** Veritabanı artık
   `~/.local/share/RadioTR/playlist.db` altında tutulur; eski komut dizinindeki
   `playlist.db` ilk açılışta otomatik taşınır.

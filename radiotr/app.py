@@ -4,15 +4,17 @@
 # Geliştirici: Erkan Işık
 # GitHub:
 
+import json
 import subprocess
 import sys
 import sqlite3
+from pathlib import Path
 
 import vlc
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QAction, QActionGroup, QIcon
 from PyQt6.QtWidgets import (
-    QApplication, QComboBox, QDialog, QDialogButtonBox, QHBoxLayout,
+    QApplication, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QHBoxLayout,
     QLabel, QLineEdit, QListWidget, QListWidgetItem, QMainWindow,
     QMenu, QMessageBox, QPushButton, QSlider, QSystemTrayIcon, QToolButton,
     QVBoxLayout, QWidget,
@@ -161,6 +163,7 @@ class RadyoPlayer(QMainWindow):
         self.settings_button.setToolTip(self.i18n.t('settings.tooltip'))
         self.capture_action.setText(self.i18n.t('settings.capture_source'))
         self.add_station_action.setText(self.i18n.t('settings.add_station'))
+        self.export_stations_action.setText(self.i18n.t('settings.export_stations'))
         self.lang_menu.setTitle(self.i18n.t('settings.language'))
         self.volume_label.setText(self.i18n.t('volume.label'))
         self._set_play_button(self.player.is_playing())
@@ -333,9 +336,12 @@ class RadyoPlayer(QMainWindow):
         self.capture_action.triggered.connect(self.select_capture_device)
         self.add_station_action = QAction(self.i18n.t('settings.add_station'), self)
         self.add_station_action.triggered.connect(self.open_add_station_dialog)
+        self.export_stations_action = QAction(self.i18n.t('settings.export_stations'), self)
+        self.export_stations_action.triggered.connect(self.export_stations)
         self.settings_menu.addSeparator()
         self.settings_menu.addAction(self.capture_action)
         self.settings_menu.addAction(self.add_station_action)
+        self.settings_menu.addAction(self.export_stations_action)
         self.settings_button.setMenu(self.settings_menu)
         self.settings_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         top_layout.addWidget(self.settings_button)
@@ -551,6 +557,38 @@ class RadyoPlayer(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, self.i18n.t('error.db'),
                                      self.i18n.t('error.delete_failed', e=e))
+
+    def export_stations(self):
+        """İstasyonları RadioAndroid'in JSON biçiminde dışa aktarır.
+
+        Format: [{"Nazwa": "<istasyon adı>", "Sciezka": "<stream url>"}]
+        """
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute("SELECT isim, url FROM istasyonlar ORDER BY isim")
+            istasyonlar = cursor.fetchall()
+            conn.close()
+        except sqlite3.Error as e:
+            QMessageBox.critical(self, self.i18n.t('export.title'),
+                                 self.i18n.t('export.error', e=e))
+            return
+
+        data = [{"Nazwa": isim, "Sciezka": url} for isim, url in istasyonlar]
+        default_path = str(Path.home() / "radiotr_radioandroid.json")
+        path, _ = QFileDialog.getSaveFileName(
+            self, self.i18n.t('export.title'), default_path, "JSON (*.json);;All files (*)")
+        if not path:
+            return
+
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(json.dumps(data, ensure_ascii=False, indent=2))
+            QMessageBox.information(self, self.i18n.t('export.title'),
+                                    self.i18n.t('export.done', count=len(data), path=path))
+        except OSError as e:
+            QMessageBox.critical(self, self.i18n.t('export.title'),
+                                 self.i18n.t('export.error', e=e))
 
     # ------------------------------------------------------------------
     def handle_playback_error(self, event):
