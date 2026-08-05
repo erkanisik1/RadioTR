@@ -4,42 +4,44 @@
 # Geliştirici: Erkan Işık
 # GitHub:
 
+import subprocess
 import sys
 import sqlite3
+from pathlib import Path
+
 import vlc
-import os
-import random
-import pyaudio
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QListWidget, QLabel, QListWidgetItem,
-    QDialog, QLineEdit, QMessageBox, QDialogButtonBox, QComboBox, QMenu,
-    QToolButton, QSystemTrayIcon
+    QApplication, QComboBox, QDialog, QDialogButtonBox, QHBoxLayout,
+    QLabel, QLineEdit, QListWidget, QListWidgetItem, QMainWindow,
+    QMenu, QMessageBox, QPushButton, QSlider, QSystemTrayIcon, QToolButton,
+    QVBoxLayout, QWidget,
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QTimer
-from PyQt6.QtGui import QIcon, QAction
 
 from vumetre import VUMeterWidget
 
-def get_saved_output_device():
-    conn = sqlite3.connect('playlist.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT deger FROM ayarlar WHERE ayar_adi = ?", ("output",))
-    row = cursor.fetchone()
-    conn.close()
-    return int(row[0]) if row else None
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = BASE_DIR / 'playlist.db'
+ICON_DIR = BASE_DIR / 'icons'
+QSS_PATH = BASE_DIR / 'style.qss'
 
-def get_device_channels(device_index):
-    p = pyaudio.PyAudio()
-    info = p.get_device_info_by_index(device_index)
-    return info.get("maxInputChannels", 0)
 
-def save_output_device(device_index):
-        conn = sqlite3.connect('playlist.db')
-        cursor = conn.cursor()
-        cursor.execute("INSERT OR REPLACE INTO ayarlar (ayar_adi, deger) VALUES (?, ?)", ("output", str(device_index)))
-        conn.commit()
+def get_setting(name, default=None):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        row = conn.execute("SELECT deger FROM ayarlar WHERE ayar_adi = ?", (name,)).fetchone()
         conn.close()
+        return row[0] if row else default
+    except sqlite3.Error:
+        return default
+
+
+def save_setting(name, value):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("INSERT OR REPLACE INTO ayarlar (ayar_adi, deger) VALUES (?, ?)", (name, str(value)))
+    conn.commit()
+    conn.close()
 
 # IstasyonDialog sınıfı aynı...
 class IstasyonDialog(QDialog):
@@ -80,10 +82,10 @@ class RadyoPlayer(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("RadioTR - İnternet Radyo Oynatıcısı")
-        self.setWindowIcon(QIcon("icons/radio-icon.png"))
+        self.setWindowIcon(QIcon(str(ICON_DIR / 'radio-icon.png')))
         self.setMinimumSize(400, 500)
         self.veritabani_kontrol_et()
-        
+
         self.vlc_instance = vlc.Instance("--quiet")
         self.player = self.vlc_instance.media_player_new()
         self.event_manager = self.player.event_manager()
@@ -91,23 +93,28 @@ class RadyoPlayer(QMainWindow):
             vlc.EventType.MediaPlayerEncounteredError, self.handle_playback_error
         )
         self.playback_error_signal.connect(self.show_error_message)
-        
+
         self.init_ui()
         self.load_stations()
-        
-        # --- YENİ ve BASİT GÖRSELLEŞTİRİCİ TİMER'I ---
-        self.vu_timer = QTimer(self)
-        self.vu_timer.timeout.connect(self.update_visualizer)
-        self.vu_timer.start(75) # 75 milisaniyede bir, daha yumuşak bir ritim için
 
-         # --- TRAY İKONU EKLE ---
-        self.tray_icon = QSystemTrayIcon(QIcon("icons/radio-icon.png"), self)
-        tray_menu = QMenu()
+        # Ses seviyesini ayarlardan yükle
+        saved_volume = int(get_setting('ses_seviyesi', 50))
+        self.player.audio_set_volume(saved_volume)
+        self.volume_slider.setValue(saved_volume)
+
+        # --- SİSTEM TRAY İKONU ---
+        self.playing_url = None
+        self.playing_name = None
+        self.tray_icon = QSystemTrayIcon(QIcon(str(ICON_DIR / 'radio-icon.png')), self)
+        self.tray_menu = QMenu()
+        self.tray_stations_menu = self.tray_menu.addMenu("İstasyonlar")
         show_action = QAction("Göster", self)
         quit_action = QAction("Çıkış", self)
-        tray_menu.addAction(show_action)
-        tray_menu.addAction(quit_action)
-        self.tray_icon.setContextMenu(tray_menu)
+        self.tray_menu.addSeparator()
+        self.tray_menu.addAction(show_action)
+        self.tray_menu.addAction(quit_action)
+        self.tray_icon.setContextMenu(self.tray_menu)
+        self._build_tray_stations()
 
         show_action.triggered.connect(self.showNormal)
         quit_action.triggered.connect(QApplication.quit)
@@ -117,6 +124,34 @@ class RadyoPlayer(QMainWindow):
 
         # Çift tık ile pencereyi geri getirme
         self.tray_icon.activated.connect(self.on_tray_activated)
+
+    def _build_tray_stations(self):
+        """Tepsi menüsündeki istasyon alt menüsünü yeniden oluşturur."""
+        if not hasattr(self, 'tray_stations_menu'):
+            return  # tray menüsü henüz kurulmadı (ilk load_stations çağrısı)
+        self.tray_stations_menu.clear()
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            rows = conn.execute(
+                "SELECT isim, url, tur FROM istasyonlar ORDER BY isim").fetchall()
+            conn.close()
+        except sqlite3.Error:
+            rows = []
+        if not rows:
+            self.tray_stations_menu.addAction("(İstasyon yok)").setEnabled(False)
+            return
+        for isim, url, tur in rows:
+            act = QAction(f"{isim} ({tur})", self)
+            act.setCheckable(True)
+            act.setData(url)
+            act.setChecked(url == self.playing_url)
+            act.triggered.connect(
+                lambda checked, u=url, n=isim: self.play_station(n, u))
+            self.tray_stations_menu.addAction(act)
+
+    def _refresh_tray_checked(self):
+        for act in self.tray_stations_menu.actions():
+            act.setChecked(act.data() == self.playing_url)
 
     def on_tray_activated(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
@@ -145,54 +180,79 @@ class RadyoPlayer(QMainWindow):
             self.hide()
             event.ignore()   # uygulamayı kapatma
         else:
-            # Uygulama kapatılırken VLC player'ı temizle
-            if hasattr(self, 'player'):
-                self.player.stop()
-                self.player.release()
+            self._cleanup()
             super().closeEvent(event)
 
-    def update_visualizer(self):
-        """Müzik çalarken VU metreye ritmik bir hareket verir."""
-        if self.player.is_playing():
-            # Ses ayarını temel seviye olarak al
-            base_level = self.player.audio_get_volume() / 150.0
-            
-            # Bu temel seviyenin etrafında rastgele bir "zıplama" yarat
-            # 0.7 ile 1.1 arasında bir çarpanla
-            flicker = 0.7 + random.random() * 0.7
-            level = base_level * flicker
-            
-            # Seviyenin 1.0'ı geçmediğinden emin ol
-            level = min(level, 1.0)
-            
-            # Stereo efekti için sağ kanalı biraz farklı yap
-            self.vumetre.update_levels(level, level * 1.0)
-        else:
-            # Müzik çalmıyorsa, VU metreyi sıfırla
-            self.vumetre.update_levels(0, 0)
+    def _cleanup(self):
+        """VLC player ve VU metre kaynaklarını serbest bırak."""
+        if hasattr(self, 'player') and self.player is not None:
+            try:
+                self.player.stop()
+                self.player.release()
+            except Exception:
+                pass
+            self.player = None
+        if hasattr(self, 'vumetre') and self.vumetre is not None:
+            try:
+                self.vumetre.close()
+            except Exception:
+                pass
 
     def veritabani_kontrol_et(self):
-        if not os.path.exists('playlist.db'):
-            try:
+        """DB yoksa oluştur; eski şemayı yeni şemaya onar."""
+        try:
+            if not Path(DB_PATH).exists():
                 from veritabani_olustur import veritabani_olustur
                 veritabani_olustur()
-            except Exception as e:
-                QMessageBox.critical(self, "Veritabanı Hatası", f"Veritabanı oluşturulamadı: {e}")
-                sys.exit()
+            from veritabani_olustur import ayarlar_tablosunu_onar
+            ayarlar_tablosunu_onar()
+        except Exception as e:
+            QMessageBox.critical(self, "Veritabanı Hatası", f"Veritabanı hazırlanamadı: {e}")
+            sys.exit()
 
     def init_ui(self):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
+
+        # --- Üst bar: şu an çalan + ayarlar çarkı ---
+        top_layout = QHBoxLayout()
         self.su_an_calan_label = QLabel("Bir istasyon seçin...")
         font = self.su_an_calan_label.font()
         font.setPointSize(12)
         self.su_an_calan_label.setFont(font)
-        self.su_an_calan_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(self.su_an_calan_label)
-        saved_index = get_saved_output_device()
-        self.vumetre = VUMeterWidget(device_index=saved_index)
+        top_layout.addWidget(self.su_an_calan_label, 1)
+
+        self.settings_button = QToolButton()
+        self.settings_button.setIcon(self.style().standardIcon(self.style().StandardPixmap.SP_FileDialogDetailedView))
+        self.settings_button.setToolTip("Ayarlar")
+        self.settings_menu = QMenu()
+        self.capture_action = QAction("VU Metre Yakalama Cihazı Seç", self)
+        self.capture_action.triggered.connect(self.select_capture_device)
+        self.add_station_action = QAction("Yeni İstasyon Ekle", self)
+        self.add_station_action.triggered.connect(self.open_add_station_dialog)
+        self.settings_menu.addAction(self.capture_action)
+        self.settings_menu.addAction(self.add_station_action)
+        self.settings_button.setMenu(self.settings_menu)
+        self.settings_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        top_layout.addWidget(self.settings_button)
+        main_layout.addLayout(top_layout)
+
+        # --- Ses seviyesi ---
+        ses_layout = QHBoxLayout()
+        ses_layout.addWidget(QLabel("Ses:"))
+        self.volume_slider = QSlider(Qt.Orientation.Horizontal)
+        self.volume_slider.setRange(0, 100)
+        self.volume_slider.setValue(50)
+        self.volume_slider.valueChanged.connect(self.on_volume_changed)
+        ses_layout.addWidget(self.volume_slider, 1)
+        main_layout.addLayout(ses_layout)
+
+        # --- VU metre (gerçek yakalama, otomatik cihaz seçimi) ---
+        self.vumetre = VUMeterWidget(parent=self)
         main_layout.addWidget(self.vumetre)
+
+        # --- İstasyon listesi ---
         self.istasyon_listesi = QListWidget()
         list_font = self.istasyon_listesi.font()
         list_font.setPointSize(11)
@@ -200,47 +260,32 @@ class RadyoPlayer(QMainWindow):
         self.istasyon_listesi.itemDoubleClicked.connect(self.play_selected_station)
         self.istasyon_listesi.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.istasyon_listesi.customContextMenuRequested.connect(self.show_context_menu)
-        main_layout.addWidget(self.istasyon_listesi)
-        top_button_layout = QHBoxLayout()
-        
-        
-        # --- Tek Oynat/Durdur butonu ---
-        kontrol_layout = QHBoxLayout()
+        main_layout.addWidget(self.istasyon_listesi, 1)
+
+        # --- Oynat/Durdur ---
         self.play_stop_button = QPushButton()
-        self.play_stop_button.setIcon(QIcon("icons/play-green.png"))
+        self.play_stop_button.setIcon(QIcon(str(ICON_DIR / 'play-green.png')))
         self.play_stop_button.setToolTip("Oynat")
         self.play_stop_button.clicked.connect(self.toggle_play_stop)
-        kontrol_layout.addWidget(self.play_stop_button)
-        main_layout.addLayout(kontrol_layout)
+        main_layout.addWidget(self.play_stop_button)
 
-        # Sağ üst köşeye çark ikonu
-        self.settings_button = QToolButton()
-        self.settings_button.setIcon(self.style().standardIcon(self.style().StandardPixmap.SP_FileDialogDetailedView))
-        self.settings_button.setToolTip("Ayarlar")
-        self.settings_menu = QMenu()
-        self.device_action = QAction("Ses Cihazı Seç", self)
-        self.device_action.triggered.connect(self.select_audio_device)
-        self.add_station_action = QAction("Yeni İstasyon Ekle", self)
-        self.add_station_action.triggered.connect(self.open_add_station_dialog)
-        self.settings_menu.addAction(self.device_action)
-        self.settings_menu.addAction(self.add_station_action)
-        self.settings_button.setMenu(self.settings_menu)
-        self.settings_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
-        # Sağ üst köşeye yerleştir
-        top_layout = QHBoxLayout()
-        top_layout.addWidget(self.su_an_calan_label)
-        top_layout.addWidget(self.settings_button)
-        main_layout.addLayout(top_layout)
+    def on_volume_changed(self, value):
+        self.player.audio_set_volume(value)
+        save_setting('ses_seviyesi', value)
 
     def toggle_play_stop(self):
         if self.player.is_playing():
             self.player.stop()
+            self.playing_url = None
+            self.playing_name = None
             self.su_an_calan_label.setText("Durduruldu")
-            self.play_stop_button.setIcon(QIcon("icons/play-green.png"))
+            self.play_stop_button.setIcon(QIcon(str(ICON_DIR / 'play-green.png')))
             self.play_stop_button.setToolTip("Oynat")
+            self._refresh_tray_checked()
+            self.tray_icon.setToolTip("RadioTR - İnternet Radyo Oynatıcısı")
         else:
             self.play_selected_station()
-            self.play_stop_button.setIcon(QIcon("icons/stop-green.png"))
+            self.play_stop_button.setIcon(QIcon(str(ICON_DIR / 'stop-green.png')))
             self.play_stop_button.setToolTip("Durdur")
 
     def play_selected_station(self):
@@ -251,23 +296,35 @@ class RadyoPlayer(QMainWindow):
         full_text = current_item.text()
         isim = full_text.rsplit(' (', 1)[0]
         url = current_item.data(Qt.ItemDataRole.UserRole)
+        self.play_station(isim, url)
+
+    def play_station(self, isim, url):
+        """Belirli bir istasyonu çalar (liste, tepsi menüsü ortak)."""
+        self.playing_url = url
+        self.playing_name = isim
         self.su_an_calan_label.setText(f"Bağlanılıyor: {isim}...")
         media = self.vlc_instance.media_new(url)
         self.player.set_media(media)
         self.player.play()
         self.su_an_calan_label.setText(f"Şu An Çalıyor: {isim}")
-        self.play_stop_button.setIcon(QIcon("icons/stop-green.png"))
+        self.play_stop_button.setIcon(QIcon(str(ICON_DIR / 'stop-green.png')))
         self.play_stop_button.setToolTip("Durdur")
-        
+        self._refresh_tray_checked()
+        self.tray_icon.setToolTip(f"RadioTR - {isim}")
+
     def stop_station(self):
         self.player.stop()
+        self.playing_url = None
+        self.playing_name = None
         self.su_an_calan_label.setText("Durduruldu")
-        self.play_stop_button.setIcon(QIcon("icons/stop-green.png"))
+        self.play_stop_button.setIcon(QIcon(str(ICON_DIR / 'play-green.png')))
         self.play_stop_button.setToolTip("Oynat")
-    
+        self._refresh_tray_checked()
+        self.tray_icon.setToolTip("RadioTR - İnternet Radyo Oynatıcısı")
+
     def load_stations(self):
         try:
-            conn = sqlite3.connect('playlist.db')
+            conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             cursor.execute("SELECT isim, url, tur FROM istasyonlar ORDER BY isim")
             istasyonlar = cursor.fetchall()
@@ -278,6 +335,7 @@ class RadyoPlayer(QMainWindow):
                 item.setData(Qt.ItemDataRole.UserRole, url)
                 item.setToolTip("Dinlemek için çift tıklayın.\nDüzenlemek veya silmek için sağ tıklayın.")
                 self.istasyon_listesi.addItem(item)
+            self._build_tray_stations()
         except Exception as e:
             QMessageBox.critical(self, "Veritabanı Hatası", f"İstasyonlar yüklenemedi: {e}")
     
@@ -302,7 +360,7 @@ class RadyoPlayer(QMainWindow):
 
     def add_station_to_db(self, isim, url, tur):
         try:
-            conn = sqlite3.connect('playlist.db')
+            conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             cursor.execute("INSERT INTO istasyonlar (isim, url, tur) VALUES (?, ?, ?)", (isim, url, tur))
             conn.commit()
@@ -328,7 +386,7 @@ class RadyoPlayer(QMainWindow):
 
     def update_station_in_db(self, old_url, new_name, new_url, new_tur):
         try:
-            conn = sqlite3.connect('playlist.db')
+            conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             cursor.execute("UPDATE istasyonlar SET isim = ?, url = ?, tur = ? WHERE url = ?", (new_name, new_url, new_tur, old_url))
             conn.commit()
@@ -343,7 +401,7 @@ class RadyoPlayer(QMainWindow):
         cevap = QMessageBox.question(self, "Silme Onayı", f"'{isim}' istasyonunu silmek istediğinizden emin misiniz?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if cevap == QMessageBox.StandardButton.Yes:
             try:
-                conn = sqlite3.connect('playlist.db')
+                conn = sqlite3.connect(DB_PATH)
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM istasyonlar WHERE url = ?", (url,))
                 conn.commit()
@@ -359,48 +417,39 @@ class RadyoPlayer(QMainWindow):
     def show_error_message(self):
         self.su_an_calan_label.setText("Hata: Yayın açılamadı. Başka bir istasyon seçin.")
 
-    def select_audio_device(self):
+    def select_capture_device(self):
         dialog = QDialog(self)
-        dialog.setWindowTitle("Ses Çıkış Cihazı Seçin")
+        dialog.setWindowTitle("VU Metre Yakalama Kaynağı")
         layout = QVBoxLayout(dialog)
-        label = QLabel("Lütfen bir ses çıkış cihazı seçin:")
+        label = QLabel("Monitor kaynakları (varsayılan hoparlörün sesini dinler):")
         layout.addWidget(label)
         combo = QComboBox()
         layout.addWidget(combo)
         button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         layout.addWidget(button_box)
 
-        # Mevcut çıkış aygıtlarını al
+        # Otomatik: varsayılan hoparlörün monitor'ü (BT bağlanınca kendisi geçer)
+        combo.addItem("Otomatik (varsayılan hoparlör)", userData=None)
+
         try:
-            pyaudio_instance = pyaudio.PyAudio()
-            device_count = pyaudio_instance.get_device_count()
-            for i in range(device_count):
-                device_info = pyaudio_instance.get_device_info_by_index(i)
-                if device_info["maxOutputChannels"] > 0:
-                    combo.addItem(device_info["name"], userData=device_info["index"])
+            out = subprocess.check_output(['pactl', 'list', 'sources', 'short'],
+                                          text=True, stderr=subprocess.DEVNULL)
+            for line in out.splitlines():
+                parts = line.split()
+                if len(parts) >= 2 and 'monitor' in parts[1]:
+                    combo.addItem(parts[1], userData=parts[1])
         except Exception as e:
-            QMessageBox.critical(self, "PyAudio Hatası", f"Ses aygıtları alınamadı: {e}")
+            QMessageBox.critical(self, "pactl Hatası", f"Monitor kaynakları alınamadı: {e}")
+
+        current = self.vumetre._manual_source
+        if current:
+            idx = combo.findData(current)
+            if idx >= 0:
+                combo.setCurrentIndex(idx)
 
         def on_ok():
-            selected_index = combo.currentData()
-            # Seçilen cihazla test stream açmayı dene
-            test_p = pyaudio.PyAudio()
-            try:
-                test_stream = test_p.open(
-                    format=pyaudio.paInt16,
-                    channels=2,
-                    rate=44100,
-                    input=True,
-                    frames_per_buffer=1024,
-                    input_device_index=selected_index
-                )
-                test_stream.close()
-                test_p.terminate()
-            except Exception as e:
-                QMessageBox.warning(dialog, "Geçersiz Çıkış", f"Seçilen cihaz çalışmıyor veya erişilemiyor!\n\n{e}")
-                return  # Diyalog açık kalır, seçim iptal edilir
-
-            save_output_device(selected_index)
+            selected = combo.currentData()
+            self.vumetre.set_capture(selected)  # None => otomatik mod
             dialog.accept()
 
         button_box.button(QDialogButtonBox.StandardButton.Ok).clicked.connect(on_ok)
@@ -408,14 +457,15 @@ class RadyoPlayer(QMainWindow):
 
         dialog.exec()
 if __name__ == '__main__':
-    app = QApplication(sys.argv)    
-    QApplication.setQuitOnLastWindowClosed(False)  # önemli
+    app = QApplication(sys.argv)
+    QApplication.setQuitOnLastWindowClosed(False)  # tepsi ile çalışmak için önemli
     try:
-        with open('style.qss', 'r') as f:
+        with open(QSS_PATH, 'r') as f:
             app.setStyleSheet(f.read())
     except FileNotFoundError:
         pass
-        
+
     player_window = RadyoPlayer()
+    app.aboutToQuit.connect(player_window._cleanup)
     player_window.show()
     sys.exit(app.exec())

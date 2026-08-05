@@ -61,3 +61,33 @@ QScrollBar::handle:vertical {
     min-height: 20px;
     border-radius: 6px;
 }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    border: none;
+    background: none;
+}
+
+QSlider::groove:horizontal {
+    border: 1px solid #444;
+    height: 6px;
+    border-radius: 3px;
+    background: #2b2b2b;
+}
+QSlider::handle:horizontal {
+    background: #4a6da7;
+    border: 1px solid #5d8fd3;
+    width: 14px;
+    margin: -6px 0;
+    border-radius: 7px;
+}
+QSlider::handle:horizontal:hover {
+    background: #5d8fd3;
+}
+
+QToolButton {
+    background: transparent;
+    border: none;
+    padding: 4px;
+}
+QToolButton::menu-indicator {
+    image: none;
+}
