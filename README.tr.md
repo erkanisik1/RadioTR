@@ -22,6 +22,7 @@ RadioTR Player, internet radyolarını dinleyebileceğiniz, istasyon ekleyip dü
 - **Ses seviyesi kaydırıcısı** (değer hatırlanır)
 - **Sistem tepsisi desteği** — tepsi menüsünden istasyon seçme/değiştirme, pencereyi gizleme
 - **Çok dilli arayüz** (Türkçe / İngilizce) — Ayarlar → Dil; otomatik sistem dili algılama, seçim hatırlanır
+- **RadioAndroid için istasyon export** — Ayarlar'dan istasyon listeni RadioAndroid'in JSON biçimine (`[{"Nazwa","Sciezka"}]`) dışa aktar, telefonda içe aktar
 - Oynat/Durdur için tek buton ve ikon desteği
 - Modern ve sade koyu tema (PyQt6 + QSS)
 - Kanal listesinde fareyle üzerine gelince bilgi gösteren tooltip
@@ -92,6 +93,9 @@ radiotr                 # kurulduktan sonra
   Çalan istasyon menüde işaretlenir.
 - Arayüz dilini **Ayarlar → Dil** menüsünden değiştirin (Otomatik / Türkçe / İngilizce).
   "Otomatik" sistem dilini kullanır; seçim hatırlanır ve açılışta geri yüklenir.
+- İstasyonlarını Android için **Ayarlar → İstasyonları Export Et (RadioAndroid)** ile
+  dışa aktarın. Konum seçin; çıkan JSON dosyası RadioAndroid uygulamasında içe
+  aktarılabilir (`[{"Nazwa","Sciezka"}]`).
 
 ## Veritabanı
 

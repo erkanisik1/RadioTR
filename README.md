@@ -22,6 +22,7 @@ RadioTR Player is a modern desktop application for listening to internet radio s
 - **Volume slider** (the value is remembered)
 - **System tray support** — pick/switch stations and hide the window from the tray menu
 - **Multilingual interface** (Turkish / English) — Settings → Language; automatic system-language detection, selection is remembered
+- **Export stations for RadioAndroid** — export your station list to RadioAndroid's JSON format (`[{"Nazwa","Sciezka"}]`) from Settings and import it on Android
 - Single play/stop button with icon support
 - Modern, clean dark theme (PyQt6 + QSS)
 - Tooltips on the station list
@@ -92,6 +93,9 @@ radiotr                 # after installation
   the currently playing station is checked.
 - Change the UI language from **Settings → Language** (Auto / Turkish / English).
   "Auto" uses the system language; the selection is remembered and restored on launch.
+- Export your stations for Android from **Settings → Export Stations (RadioAndroid)**.
+  Choose a location; the resulting JSON file can be imported into the RadioAndroid app
+  (`[{"Nazwa","Sciezka"}]`).
 
 ## Database
 
