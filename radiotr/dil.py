@@ -9,9 +9,8 @@ ayar yoksa ilk açılışta sistem dili denenir; Türkçe değilse İngilizce'ye
 import json
 import locale
 import sqlite3
-from pathlib import Path
 
-LANG_DIR = Path(__file__).resolve().parent / 'lang'
+from radiotr.paths import LANG_DIR
 LANG_TR = 'tr'
 LANG_EN = 'en'
 SUPPORTED = (LANG_TR, LANG_EN)

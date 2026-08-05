@@ -23,3 +23,15 @@ __pycache__/
 # Sistem dosyaları
 .DS_Store
 Thumbs.db
+
+# Tesadüfi 39MB döküm dosyası (bilerek takip dışı)
+-
+
+# Python paketleme kalıntıları
+build/
+dist/
+*.egg-info/
+
+# Sanal ortamlar
+.venv/
+venv/

@@ -5,7 +5,7 @@ import os
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parent / 'playlist.db'
+from radiotr.paths import DB_PATH
 
 
 def veritabani_olustur():

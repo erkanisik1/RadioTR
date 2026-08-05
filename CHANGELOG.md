@@ -7,6 +7,15 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir. Format
 ## [0.3.0] - 2026-08-05
 
 ### Eklendi
+- **Kurulabilir paket:** `pyproject.toml` ile pip kurulumu (`pip install .`) ve
+  `radiotr` komut satırı; paket `radiotr/` klasörüne taşındı. `lang/`, `icons/`
+  ve `style.qss` paket verisi olarak gömülü.
+- **Masaüstü entegrasyonu (.desktop):** İlk açılışta
+  `~/.local/share/applications/radiotr.desktop` ve hicolor uygulama ikonu
+  otomatik oluşturulur; radyo menüsünde görünür.
+- **Kullanıcı verisi XDG'ye taşındı:** Veritabanı artık
+  `~/.local/share/RadioTR/playlist.db` altında tutulur; eski komut dizinindeki
+  `playlist.db` ilk açılışta otomatik taşınır.
 - **Çok dilli arayüz (Türkçe / İngilizce):** Ayarlar → Dil menüsünden dil
   seçilebilir (Otomatik / Türkçe / İngilizce). "Otomatik" sistem dilini kullanır;
   desteklenmeyen dilde İngilizce'ye düşülür. Seçim `ayarlar.dil` alanına
